@@ -1,28 +1,31 @@
-date=`date +%Y-%m-%d.%H.%M.%S`
+#!/bin/bash
+
+cat > /root/.s3cfg << EOF
+[default]
+access_key = $ACCESS_KEY
+secret_key = $SECRET_KEY
+use_https = False
+EOF
+
+interval=20
+if [ ! -z $SLEEP_INTERVAL ]; then
+    interval=$SLEEP_INTERVAL
+fi
+sleep $interval
+
+date=`date +%F_%R`
 file="${date}-${COCKROACH_DATABASE}.sql"
 
-cat /google-cloud-sdk/path.bash.inc
-if [ "${CLOUD_PROVIDER}" = "aws" ]
-then
-  echo "AWS selected. Starting cockroach dump..."
-  # cockroach dump reads the environment variables
-  cockroach dump -u ${COCKROACH_USER} --insecure > "/tmp/${file}.sql"
-fi
+# cockroach dump reads the environment variables
+cockroach dump --host $SERVICENAME $COCKROACH_DATABASES --insecure --dump-mode=data > "/tmp/${file}.sql"
+S3CMDNOW="$(date +%F)"/
+cd /tmp
+s3cmd put "/tmp/${file}.sql" $S3CMDPATH$S3CMDNOW
 
-if [ "${CLOUD_PROVIDER}" = "gcp" ]
-then
-  url="https://storage.googleapis.com/${GCP_BUCKET_NAME}/${file}"
-
-  # Dump cockroachdb
-  echo "Dumping database"
-  /cockroach dump ${COCKROACH_DATABASE} --url ${COCKROACH_URL} > "/tmp/${file}"
-  echo "Dump completed.  Uploading /tmp/${file} to ${url}"
-
-  echo "Generating GCP token..."
-  /google-cloud-sdk/bin/gcloud auth activate-service-account "${GCP_SA_USER}" --key-file=/gcp/key.json
-
-  cat "/tmp/${file}"
-  curl -v --upload-file "/tmp/${file}" \
-    -H "Authorization: Bearer `/google-cloud-sdk/bin/gcloud auth print-access-token ${GCP_SA_USER}`" \
-    "${url}"
+# remove 3 days old folder
+S3CMDDEL="$(date --date="3 days ago" +%F)"/
+COUNT=`s3cmd ls $S3CMDPATH$S3CMDDEL | wc -l`
+if [[ $COUNT -gt 0 ]]; then
+    s3cmd -r del $S3CMDPATH$S3CMDDEL
+    echo "$S3CMDPATH$S3CMDDEL deleted"
 fi

@@ -1,0 +1,9 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: cockroach-dbs
+data:
+  COCKROACH_DATABASES: #db name
+  SLEEP_INTERVAL: "20"
+  S3CMDPATH: # s3 bucket, example: s3://yourcompany-backup-cockroachdb/
+  SERVICENAME: # cockroachdb service name

@@ -1,27 +1,10 @@
-FROM alpine:latest
-MAINTAINER Kevin Minehart <kmineh0151@gmail.com>
+FROM ubuntu:xenial
+MAINTAINER Mikayel Galyan "admin@zzillasoft.com"
 
-# install dependencies
-RUN apk add --no-cache --update curl \
-  bash \
-  ca-certificates \
-  wget \
-  python2 \
-  py2-openssl
+COPY backup.sh /bin/backup-cockroach.sh
+RUN apt-get update; apt-get install -y wget s3cmd; apt-get clean; chmod +x /bin/backup-cockroach.sh
+# use the version you are using
+RUN wget -qO- https://binaries.cockroachdb.com/cockroach-v1.1.7.linux-amd64.tgz | tar  xvz; cp -i cockroach-v1.1.7.linux-amd64/cockroach /usr/local/bin
 
-RUN wget https://dl.google.com/dl/cloudsdk/channels/rapid/google-cloud-sdk.tar.gz
-RUN tar -xvf google-cloud-sdk.tar.gz
-RUN rm google-cloud-sdk.tar.gz
-RUN google-cloud-sdk/install.sh --usage-reporting=false \
-  --path-update=false \
-  --bash-completion=false
-
-RUN wget -qO- https://binaries.cockroachdb.com/cockroach-v1.1.1.linux-musl-amd64.tgz | tar  xvz
-RUN cp -i cockroach-v1.1.1.linux-musl-amd64/cockroach /
-RUN chmod +x /cockroach
-
-# add backup script
-COPY backup.sh /backup-cockroach
-RUN chmod +x /backup-cockroach
-
-CMD /backup-cockroach
+ENTRYPOINT ["bash"]
+CMD ["/bin/backup-cockroach.sh"]

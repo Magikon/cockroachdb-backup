@@ -1,0 +1,51 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: cockroachdb-backup
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      activeDeadlineSeconds: 2400
+      template:
+        metadata:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: cockroach-backup
+            image: <image that you created>
+            imagePullPolicy: Always
+            env:
+            - name: COCKROACH_DATABASES
+              valueFrom:
+                configMapKeyRef:
+                  name: cockroach-dbs
+                  key: COCKROACH_DATABASES
+            - name: SLEEP_INTERVAL
+              valueFrom:
+                configMapKeyRef:
+                  name: cockroach-dbs
+                  key: SLEEP_INTERVAL
+            - name: ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: s3cfg
+                  key: access_key
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: s3cfg
+                  key: secret_key
+            - name: S3CMDPATH
+              valueFrom:
+                configMapKeyRef:
+                  name: cockroach-dbs
+                  key: S3CMDPATH
+            - name: SERVICENAME
+              valueFrom:
+                configMapKeyRef:
+                  name: cockroach-dbs
+                  key: SERVICENAME

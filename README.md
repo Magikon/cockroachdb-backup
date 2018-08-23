@@ -7,7 +7,10 @@
 4. In coockroach-configmap.yaml change db name, service name and bucket name in s3
 
 5. run in terminal 
+
    kubectl apply -f k8s/s3-secret.yaml
+   
    kubectl apply -f k8s/cockroach-configmap.yaml
+   
    kubectl apply -f k8s/cockroach-cronjob.yaml
    

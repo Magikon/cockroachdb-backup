@@ -2,7 +2,7 @@
 
 2. Change in Dockerfile cockroachdb version
 
-3. In S3-secret.yaml create base64 access and secret keys and change <Access Key base64> and <Secret Key base64>
+3. In S3-secret.yaml create base64 access and secret keys and change "Access Key base64" and "Secret Key base64"
 
 4. In coockroach-configmap.yaml change db name, service name and bucket name in s3
 
